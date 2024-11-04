@@ -90,7 +90,7 @@ def metadata_manipulation_check(base_url):
         cookie_manipulation_check()
 
 def check_cors_configuration(base_url):
-    headers = {"Origin": "http://"}
+    headers = {"Origin": input("Insert")}
 
 check_access_sensitive_url(base_url)
 check_api_access_control(base_url)
