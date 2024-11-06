@@ -1,0 +1,41 @@
+{
+    
+    "base_url": "http://52.78.203.0",
+    "admin_path": "/admin_index.php",
+    "login_path": "/login.php",
+    "api_paths": "",
+    "jwt_token": "",
+    "secret_key": "",
+    "cors_origin": "https://dreamhack.io",
+    "username": "Bob",
+    "password": "p@ssw0rd",
+    "hidden_field_path": "",
+    "error_message_paths": "",
+
+    
+    "db_path": "",
+    "table_name": "users",
+    "column_name": "password",
+    "url": "http://52.78.203.0",
+    "db_host": "root",
+    "db_user": "root",
+    "db_password": "1234",
+    "database": "mainpj_db",
+    "check_hardcoded_secretkey_target_dir": "",
+    "file_extenions": [".py", ".env", ".json", ".conf", ".ini"],
+
+
+
+    "admin_id": "admin",
+    "command_injection_payloads": ["; ls", "&& ls", "| ls"],
+    "requirements_path" : "",
+    "default_admin_account": "admin",
+    "default_admin_pasword": "admin",
+    "important_dirs_linux": ["/", "/admin", "/config"],
+    "sensitive_dirs_linux": ["/.git", "/config", "/backup", "/logs"],
+    
+    "important_dirs_windows": [""],
+    "sensitive_dirs_windows": [""]
+
+
+}

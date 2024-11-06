@@ -1,195 +1,248 @@
 import requests
 import jwt
 import os
+import json
 from bs4 import BeautifulSoup
 
 class AccessControlDiagnosticTool:
     def __init__(self):
+        config_path = os.path.join(os.path.dirname(__file__), "../settings/config.json")
+
+        with open(config_path, 'r') as f:
+            config = json.load(f)
+
         # 사용자 입력을 한 번에 받아 초기화
-        self.base_url = "http://" + input("Enter the Base URL: ").strip()
-        self.admin_path = input(f"Enter Admin page path ({self.base_url}): ").strip()
-        self.login_path = input(f"Enter Login page path ({self.base_url}): ").strip()
-        self.api_path = input(f"Enter API path ({self.base_url}): ").strip()
-        self.original_token = input("Enter the JWT original token: ").strip()
-        self.secret_key = self.get_secret_key()
-        self.cors_origin = input("Enter CORS test Origin URL: ").strip()
+        self.base_url = config.get("base_url")
+        self.admin_path = config.get("admin_path")
+        self.login_path = config.get("login_path")
+        self.api_path = config.get("api_paths", ["/api"])[0] if isinstance(config.get("api_paths"), list) else config.get("api_paths")
+        self.original_token = config.get("original_token")
+        self.secret_key = config.get("secret_key")
+        self.cors_origin = config.get("cors_origin")
+        self.username = config.get("username")
+        self.password = config.get("password")
+        self.hidden_field_paths = config.get("hidden_field_paths")
+        self.error_message_paths = config.get("error_message_paths")
 
-    def get_secret_key(self):
-        # 비밀키를 환경 변수에서 불러오거나 직접 입력
-        print("\n1. Load Secret key from environment variable (JWT_SECRET_KEY)")
-        print("2. Enter the Secret key directly")
-        choice = input("Choose an option (1 or 2): ").strip()
-        if choice == "1":
-            secret_key = os.getenv("JWT_SECRET_KEY")
-            if secret_key:
-                print(f"Secret key loaded successfully: {secret_key}")
-                return secret_key
+    
+    def perform_diagnostics(self, result_filename):
+        with open(result_filename, "a") as result_file:
+            result_file.write("Results for A-01: Access Control Diagnostics\n\n")
+
+        # 진단 함수들에 result_filename 전달
+        self.check_access_sensitive_url(result_filename)
+        self.check_api_access_control(result_filename)
+        self.check_session_expiration(result_filename)
+        self.metadata_manipulation_check(result_filename)
+        self.check_cors_configuration(result_filename)
+        self.check_hidden_fields(result_filename)
+        self.check_error_messages(result_filename)
+
+    def fetch_robots_disallowed_paths(self):
+        robots_url = self.base_url + "/robots.txt"
+        disallowed_paths = []
+        try:
+            response = requests.get(robots_url)
+            if response.status_code == 200:
+                lines = response.text.splitlines()
+                for line in lines:
+                    line = line.strip()
+                    if line.startswith("Disallow:"):
+                        path = line.split(":", 1)[1].strip()
+                        if path:
+                            disallowed_paths.append(path)
+                print(f"[INFO] Found {len(disallowed_paths)} disallowed paths in robots.txt")
             else:
-                print("[ERROR] Secret key not found in environment. Enter manually.")
-                return input("Enter the Secret key: ").strip()
-        elif choice == "2":
-            return input("Enter the Secret key: ").strip()
-        else:
-            print("No Secret Key provided.")
-            return None
+                print(f"[WARNING] robots.txt not found or inaccessible (status code {response.status_code}).")
+        except requests.RequestException as e:
+            print(f"[ERROR] Failed to retrieve robots.txt {e}")
 
-    def check_access_sensitive_url(self):
-        if not self.base_url:
-            print("Skipping sensitive URL access check (Base URL not provided).")
-            return
+        return disallowed_paths
 
-        sensitive_paths = ['/admin', '/config', '/backup', '/user/settings']
-        for path in sensitive_paths:
-            url = self.base_url + path
-            try:
-                response = requests.get(url, allow_redirects=False)
+    def check_access_sensitive_url(self, result_filename):
+        with open(result_filename, "a") as result_file:
+            result_file.write("[INFO] Checking sensitive URL access.\n")
+            if not self.base_url:
+                result_file.write("[INFO] Skipping sensitive URL access check (Base URL not provided).\n")
+                return
+
+            sensitive_paths = ['/admin', '/config', '/backup', '/user/settings', self.admin_path]
+            robots_disallowed_paths = self.fetch_robots_disallowed_paths()
+            sensitive_paths.extend(robots_disallowed_paths)
+            sensitive_paths = list(set(sensitive_paths))
+
+            for path in sensitive_paths:
+                url = self.base_url + path
+                try:
+                    response = requests.get(url, allow_redirects=False)
+                    result_file.write(f"[DEBUG] Checking URL: {url} - Status Code: {response.status_code}\n")
+                    
+                    if response.status_code == 200:
+                        result_file.write(f"[CAUTION] Allowed access to: {url}\n")
+                    elif response.status_code == 403:
+                        result_file.write(f"[SAFE] Access denied to: {url}\n")
+                    elif response.status_code == 404:
+                        result_file.write(f"[SAFE] Path not found: {url}\n")
+                    else:
+                        result_file.write(f"[Need to Check] Unexpected response code {response.status_code} for {url}\n")
+                
+                except requests.exceptions.RequestException as e:
+                    result_file.write(f"[ERROR] Unable to access {url}. Error: {e}\n")
+                    continue
+
+    def check_api_access_control(self, result_filename):
+        with open(result_filename, "a") as result_file:
+            result_file.write("[INFO] Checking API access control.\n")
+            if not self.api_path:
+                result_file.write("[INFO] Skipping API access control check (API path not provided).\n")
+                return
+
+            api_endpoints = {self.api_path: ['GET', 'POST', 'DELETE']}
+            for endpoint, methods in api_endpoints.items():
+                for method in methods:
+                    url = self.base_url + endpoint
+                    try:
+                        response = requests.request(method, url, allow_redirects=False)
+                        if response.status_code == 200 and method in ['POST', 'PUT', 'DELETE']:
+                            result_file.write(f"[CAUTION] {method} allowed without authentication: {url}\n")
+                        elif response.status_code == 403:
+                            result_file.write(f"[SAFE] Access forbidden: {url}\n")
+                        else:
+                            result_file.write(f"[Need to Check] Status code {response.status_code} for {method} request to {url}\n")
+                    except requests.RequestException as e:
+                        result_file.write(f"[ERROR] Unable to perform {method} on {url}. Error: {e}\n")
+
+    def check_session_expiration(self, result_filename):
+        with open(result_filename, "a") as result_file:
+            result_file.write("[INFO] Checking Session expiration.\n")
+            if not (self.login_path and self.base_url):
+                result_file.write("[INFO] Skipping session expiration check (Login path or Base URL not provided).\n")
+                return
+
+            with requests.Session() as session:
+                login_url = self.base_url + self.login_path
+                login_data = {'username': self.username,
+                            'password': self.password}
+                session.post(login_url, data=login_data)
+                session.cookies.clear()  # 세션 만료 시뮬레이션
+                response = session.get(self.base_url + self.admin_path, allow_redirects=False)
                 if response.status_code == 200:
-                    print(f"[CAUTION] Allowed access to: {url}")
+                    result_file.write(f"[CAUTION] Access allowed after session expiration: {self.admin_path}\n")
                 elif response.status_code == 403:
-                    print(f"[SAFE] Access denied to: {url}")
-                elif response.status_code == 404:
-                    print(f"[SAFE] Path not found: {url}")
-                else:
-                    print(f"[Need to Check] Unexpected response code {response.status_code} for {url}")
-            except requests.exceptions.RequestException as e:
-                print(f"[ERROR] Unable to access {url}. Error: {e}")
+                    result_file.write(f"[SAFE] Access denied after session expiration: {self.admin_path}\n")
 
-    def check_api_access_control(self):
-        if not self.api_path:
-            print("Skipping API access control check (API path not provided).")
-            return
+    def metadata_manipulation_check(self, result_filename):
+        with open(result_filename, "a") as result_file:
+            result_file.write("[INFO] Checking metadata manipulation.\n")
+            if not (self.original_token and self.secret_key):
+                result_file.write("[INFO] Skipping metadata manipulation check (Token or Secret Key not provided).\n")
+                return
 
-        api_endpoints = {self.api_path: ['GET', 'POST', 'DELETE']}
-        for endpoint, methods in api_endpoints.items():
-            if not endpoint or endpoint.strip() == "":
-                continue
-            for method in methods:
-                url = self.base_url + endpoint
-                response = requests.request(method, url, allow_redirects=False)
-                if response.status_code == 200 and method in ['POST', 'PUT', 'DELETE']:
-                    print(f"[CAUTION] {method} allowed without authentication: {url}")
+            if self.check_jwt_usage(result_filename):
+                self.jwt_manipulation_check(result_filename, self.original_token)
+            else:
+                self.cookie_manipulation_check(result_filename)
+
+    def check_jwt_usage(self, result_filename):
+        with open(result_filename, "a") as result_file:
+            response = requests.get(self.base_url)
+            auth_header = response.headers.get("Authorization")
+            if auth_header and "Bearer" in auth_header:
+                result_file.write("[INFO] JWT token usage confirmed.\n")
+                return True
+            else:
+                result_file.write("[INFO] JWT token not detected.\n")
+                return False
+
+    def jwt_manipulation_check(self, result_filename, original_token):
+        with open(result_filename, "a") as result_file:
+            manipulated_token = jwt.encode({"role": "admin"}, self.secret_key, algorithm="HS256")
+            headers = {"Authorization": f"Bearer {manipulated_token}"}
+            response = requests.get(self.base_url + self.admin_path, headers=headers, allow_redirects=False)
+            if response.status_code == 200:
+                result_file.write("[CAUTION] Manipulated JWT token allowed access.\n")
+            elif response.status_code == 403:
+                result_file.write("[SAFE] Manipulated JWT token denied access.\n")
+
+    def cookie_manipulation_check(self, result_filename):
+        with open(result_filename, "a") as result_file:
+            if not (self.admin_path and self.login_path):
+                result_file.write("[INFO] Skipping cookie manipulation check (Admin or Login path not provided).\n")
+                return
+
+            with requests.Session() as session:
+                session.get(self.base_url + self.login_path)
+                session.cookies.set("user_role", "admin")
+                response = session.get(self.base_url + self.admin_path, allow_redirects=False)
+                if response.status_code == 200:
+                    result_file.write("[CAUTION] Access allowed with manipulated cookie.\n")
                 elif response.status_code == 403:
-                    print(f"[SAFE] Access forbidden: {url}")
+                    result_file.write("[SAFE] Access denied with manipulated cookie.\n")
+
+    def check_cors_configuration(self, result_filename):
+        with open(result_filename, "a") as result_file:
+            result_file.write("[INFO] Checking CORS configuration.\n")
+            if not (self.api_path and self.cors_origin):
+                result_file.write("[INFO] Skipping CORS configuration check (API path or CORS origin not provided).\n")
+                return
+
+            headers = {"Origin": self.cors_origin}
+            response = requests.options(self.base_url + self.api_path, headers=headers)
+            if "Access-Control-Allow-Origin" in response.headers:
+                allowed_origin = response.headers["Access-Control-Allow-Origin"]
+                if allowed_origin == "*":
+                    result_file.write("[CAUTION] CORS allows all origins ('*').\n")
                 else:
-                    print(f"[Need to Check] Status code {response.status_code} for {method} request to {url}")
-
-    def check_session_expiration(self):
-        if not (self.login_path and self.base_url):
-            print("Skipping session expiration check (Login path or Base URL not provided).")
-            return
-
-        with requests.Session() as session:
-            login_url = self.base_url + self.login_path
-            login_data = {'username': input("Enter username: ").strip(),
-                          'password': input("Enter password: ").strip()}
-            session.post(login_url, data=login_data)
-            session.cookies.clear()  # 세션 만료 시뮬레이션
-            response = session.get(self.base_url + self.admin_path, allow_redirects=False)
-            if response.status_code == 200:
-                print(f"[CAUTION] Access allowed after session expiration: {self.admin_path}")
-            elif response.status_code == 403:
-                print(f"[SAFE] Access denied after session expiration: {self.admin_path}")
-
-    def metadata_manipulation_check(self):
-        if not (self.original_token and self.secret_key):
-            print("Skipping metadata manipulation check (Token or Secret Key not provided).")
-            return
-
-        if self.check_jwt_usage():
-            self.jwt_manipulation_check(self.original_token)
-        else:
-            self.cookie_manipulation_check()
-
-    def check_jwt_usage(self):
-        response = requests.get(self.base_url)
-        auth_header = response.headers.get("Authorization")
-        if auth_header and "Bearer" in auth_header:
-            print("JWT token usage confirmed.")
-            return True
-        else:
-            print("JWT token not detected.")
-            return False
-
-    def jwt_manipulation_check(self, original_token):
-        manipulated_token = jwt.encode({"role": "admin"}, self.secret_key, algorithm="HS256")
-        headers = {"Authorization": f"Bearer {manipulated_token}"}
-        response = requests.get(self.base_url + self.admin_path, headers=headers, allow_redirects=False)
-        if response.status_code == 200:
-            print("[CAUTION] Manipulated JWT token allowed access.")
-        elif response.status_code == 403:
-            print("[SAFE] Manipulated JWT token denied access.")
-
-    def cookie_manipulation_check(self):
-        if not (self.admin_path and self.login_path):
-            print("Skipping cookie manipulation check (Admin or Login path not provided).")
-            return
-
-        with requests.Session() as session:
-            session.get(self.base_url + self.login_path)
-            session.cookies.set("user_role", "admin")
-            response = session.get(self.base_url + self.admin_path, allow_redirects=False)
-            if response.status_code == 200:
-                print("[CAUTION] Access allowed with manipulated cookie.")
-            elif response.status_code == 403:
-                print("[SAFE] Access denied with manipulated cookie.")
-
-    def check_cors_configuration(self):
-        if not (self.api_path and self.cors_origin):
-            print("Skipping CORS configuration check (API path or CORS origin not provided).")
-            return
-
-        headers = {"Origin": self.cors_origin}
-        response = requests.options(self.base_url + self.api_path, headers=headers)
-        if "Access-Control-Allow-Origin" in response.headers:
-            allowed_origin = response.headers["Access-Control-Allow-Origin"]
-            if allowed_origin == "*":
-                print("[CAUTION] CORS allows all origins ('*').")
+                    result_file.write(f"[SAFE] CORS restricted to specific origin: {allowed_origin}\n")
             else:
-                print(f"[SAFE] CORS restricted to specific origin: {allowed_origin}")
-        else:
-            print("[SAFE] CORS configuration not set.")
+                result_file.write("[SAFE] CORS configuration not set.\n")
 
-    def check_hidden_fields(self):
-        paths = input("Enter pages to search for hidden fields (comma-separated, e.g., /admin, /profile): ").strip()
-        if not paths:
-            print("Skipping hidden fields check (No pages provided).")
-            return
+    def check_hidden_fields(self, result_filename):
+        with open(result_filename, "a") as result_file:
+            result_file.write("[INFO] Checking hidden fields.\n")
+            if not self.hidden_field_paths:
+                result_file.write("[INFO] Skipping hidden fields check (No pages provided).\n")
+                return
 
-        for path in paths.split(","):
-            path = path.strip()
-            response = requests.get(self.base_url + path)
-            soup = BeautifulSoup(response.text, "html.parser")
-            hidden_fields = soup.find_all("input", type="hidden")
-            if hidden_fields:
-                print(f"[CAUTION] Hidden fields found in {path}:")
-                for field in hidden_fields:
-                    print(f"Field - name: {field.get('name')}, value: {field.get('value')}")
-            else:
-                print(f"[SAFE] No hidden fields found in {path}")
-
-    def check_error_messages(self):
-        paths = input("Enter pages to check error messages (comma-separated, e.g., /admin, /profile): ").strip()
-        if not paths:
-            print("Skipping error message check (No pages provided).")
-            return
-
-        for path in paths.split(","):
-            path = path.strip()
-            response = requests.get(self.base_url + path, allow_redirects=False)
-            if response.status_code == 403:
-                if "Access Denied" in response.text or "Unauthorized" in response.text:
-                    print(f"[SAFE] Standard error message for {path}")
+            paths = self.hidden_field_paths.split(",")
+            for path in paths:
+                path = path.strip()
+                response = requests.get(self.base_url + path)
+                soup = BeautifulSoup(response.text, "html.parser")
+                hidden_fields = soup.find_all("input", type="hidden")
+                if hidden_fields:
+                    result_file.write(f"[CAUTION] Hidden fields found in {path}:\n")
+                    for field in hidden_fields:
+                        result_file.write(f"Field - name: {field.get('name')}, value: {field.get('value')}\n")
                 else:
-                    print(f"[CAUTION] Potential sensitive information in error message for {path}")
-            else:
-                print(f"[Need Check] Response code {response.status_code} for {path}")
+                    result_file.write(f"[SAFE] No hidden fields found in {path}\n")
 
-# 진단 실행
-tool = AccessControlDiagnosticTool()
-tool.check_access_sensitive_url()
-tool.check_api_access_control()
-tool.check_session_expiration()
-tool.metadata_manipulation_check()
-tool.check_cors_configuration()
-tool.check_hidden_fields()
-tool.check_error_messages()
+    def check_error_messages(self, result_filename):
+        with open(result_filename, "a") as result_file:
+            result_file.write("[INFO] Checking Error messages in web pages.\n")
+            if not self.error_message_paths:
+                result_file.write("[INFO] Skipping error message check (No pages provided).\n")
+                return
+
+            paths = self.error_message_paths.split(",")
+            for path in paths:
+                path = path.strip()
+                response = requests.get(self.base_url + path, allow_redirects=False)
+                if response.status_code == 403:
+                    if "Access Denied" in response.text or "Unauthorized" in response.text:
+                        result_file.write(f"[SAFE] Standard error message for {path}\n")
+                    else:
+                        result_file.write(f"[CAUTION] Potential sensitive information in error message for {path}\n")
+                else:
+                    result_file.write(f"[Need Check] Response code {response.status_code} for {path}\n")
+
+
+def run_diagnosis(result_filename):
+    tool = AccessControlDiagnosticTool()
+    tool.perform_diagnostics(result_filename)
+    try:
+        tool.perform_diagnostics(result_filename)
+    except Exception as e:
+        with open(result_filename, "a") as result_filename:
+            result_filename.write(f"[ERROR] Diagnostic failed: {str(e)}\n")
+
