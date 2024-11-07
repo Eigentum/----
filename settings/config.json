@@ -35,7 +35,13 @@
     "sensitive_dirs_linux": ["/.git", "/config", "/backup", "/logs"],
     
     "important_dirs_windows": [""],
-    "sensitive_dirs_windows": [""]
+    "sensitive_dirs_windows": [""],
+
+    "dependency_file": "",
+    "cve_api_url": "",
+    "components": [""]
+
+    
 
 
 }
