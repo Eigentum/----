@@ -39,7 +39,15 @@
 
     "dependency_file": "",
     "cve_api_url": "",
-    "components": [""]
+    "components": [
+        {
+            "name": "",
+            "version": "",
+            "support_end_date": ""
+        }
+    ]
+
+
 
     
 
