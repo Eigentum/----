@@ -45,11 +45,15 @@
             "version": "",
             "support_end_date": ""
         }
-    ]
+    ],
+
+    "session_timeout": "",
+    "login_attempt_limit": "",
+    "password_hash_method": ""
 
 
 
-    
+
 
 
 }
