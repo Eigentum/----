@@ -37,6 +37,7 @@
     "important_dirs_windows": [""],
     "sensitive_dirs_windows": [""],
 
+    "Vulerable": "https://services.nvd.nist.gov/rest/json/cves/2.0",
     "dependency_file": "",
     "cve_api_url": "",
     "components": [
@@ -50,6 +51,8 @@
     "session_timeout": "",
     "login_attempt_limit": "",
     "password_hash_method": ""
+
+
 
 
 
