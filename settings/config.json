@@ -37,9 +37,9 @@
     "important_dirs_windows": [""],
     "sensitive_dirs_windows": [""],
 
-    "Vulerable": "https://services.nvd.nist.gov/rest/json/cves/2.0",
+    "cve_api_url": "https://services.nvd.nist.gov/rest/json/cves/2.0",
+    "nvd_api_key": "your_nvd_api_key_here",
     "dependency_file": "",
-    "cve_api_url": "",
     "components": [
         {
             "name": "",
@@ -50,7 +50,36 @@
 
     "session_timeout": "",
     "login_attempt_limit": "",
-    "password_hash_method": ""
+    "password_hash_method": "",
+
+
+    "A-08": "=============================",
+    "update_server_url" : "",
+    "cicd_server": "",
+    "tls_required": true,
+
+    "external_libraries": [
+        {
+            "name": "",
+            "version": "",
+            "integrity_hash": ""
+        }
+    ],
+
+    "env_files": [
+        ""
+    ],
+    
+
+    "A-09": "=============================",
+    "log_paths": [
+        "/var/log/auth.log",
+        "/var/log/syslog",
+        "/path/to/custom.log"
+    ],
+    "monitoring_tool_url": "",
+    "backup_policy_days": 180
+
 
 
 
