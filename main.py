@@ -55,14 +55,6 @@ def run_diagnostics():
         print("Error: No OWASP categories selected for diagnostics.")
         return
     
-    if "Linux" in system_info:
-        os_directory = "linux"
-    elif "Windows" in system_info:
-        os_directory = "windows"
-    else:
-        print("Error: Unsupported Operating system detected.")
-        return
-    
     result_folder = os.path.join(os.path.dirname(__file__), "result")
     os.makedirs(result_folder, exist_ok=True)  # 폴더가 없으면 생성
     
@@ -72,8 +64,9 @@ def run_diagnostics():
         result_file.write(f"System: {system_info}\n")
         result_file.write(f"Libraries: {library_status}\n\n")
         
+        script_directory = os.path.join(os.path.dirname(__file__), "script")
         for category in selected_categories:
-            module_path = os.path.join(os_directory, f"{category}.py")  # Linux or Windows directory
+            module_path = os.path.join(script_directory, f"{category}.py")  # Linux or Windows directory
             try:
                 print(f"Running diagnostics for {category}...")
                 spec = importlib.util.spec_from_file_location(category, module_path)

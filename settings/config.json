@@ -78,7 +78,15 @@
         "/path/to/custom.log"
     ],
     "monitoring_tool_url": "",
-    "backup_policy_days": 180
+    "backup_policy_days": 180,
+
+    "A-10": "==============================",
+    "client_offer_url": "",
+    "metadata_url": "",
+    "local_urls" : ["http://127.0.0.1", "http://localhost", "http://[::1]"],
+    "allowed_domains": ["example.com", "another-allowed-domain.com"],
+    "metadata_blocked": true,
+    "allowed_methods": ["GET", "POST"]
 
 
 
