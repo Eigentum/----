@@ -114,7 +114,7 @@ def check_eol(name, support_end_date, result_filename):
 # Dependency File Check
 def check_dependency_file(result_filename):
     if not dependency_file:
-        append_results_to_file(result_filename, "[INFO] No dependency file specified in config.json. Skipping dependency file check.")
+        append_results_to_file(result_filename, "[INFO] Skipping dependency file check (no dependency file path provided).\n")
         return
     
     append_results_to_file(result_filename, "[INFO] Checking dependencies in specified file...")
@@ -181,6 +181,9 @@ def run_diagnosis(result_filename):
         name = dep["name"]
         version = dep["version"]
         check_vulnerability(name, version, result_filename)
+
+    if not component:
+        append_results_to_file(result_filename, "[INFO] Skipping components check (no components provided in config).\n")
 
     for component in components:
         name = component.get("name")

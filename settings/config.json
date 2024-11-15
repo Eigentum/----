@@ -1,9 +1,11 @@
 {
-    
+    "A-01" : "=============================",
     "base_url": "http://52.78.203.0",
     "admin_path": "/admin_index.php",
     "login_path": "/login.php",
-    "api_paths": "",
+    "sensitive_paths": ["/admin", "/config", "/backup"],
+    "robots_disallowed_paths": ["/private", "/hidden"],
+    "api_paths": ["/api/login", "/api/posts"],
     "jwt_token": "",
     "secret_key": "",
     "cors_origin": "https://dreamhack.io",
@@ -12,7 +14,7 @@
     "hidden_field_path": "",
     "error_message_paths": "",
 
-    
+    "A-02" : "=============================",
     "db_path": "",
     "table_name": "users",
     "column_name": "password",
@@ -25,10 +27,16 @@
     "file_extenions": [".py", ".env", ".json", ".conf", ".ini"],
 
 
-
+    "A-03" : "=============================",
     "admin_id": "admin",
     "command_injection_payloads": ["; ls", "&& ls", "| ls"],
+
+
+    "A-04" : "=============================",
     "requirements_path" : "",
+
+    
+    "A-05" : "=============================",
     "default_admin_account": "admin",
     "default_admin_pasword": "admin",
     "important_dirs_linux": ["/", "/admin", "/config"],
@@ -37,6 +45,8 @@
     "important_dirs_windows": [""],
     "sensitive_dirs_windows": [""],
 
+
+    "A-06" : "=============================",
     "cve_api_url": "https://services.nvd.nist.gov/rest/json/cves/2.0",
     "nvd_api_key": "your_nvd_api_key_here",
     "dependency_file": "",
@@ -48,12 +58,13 @@
         }
     ],
 
+    "A-07" : "=============================",
     "session_timeout": "",
     "login_attempt_limit": "",
     "password_hash_method": "",
 
 
-    "A-08": "=============================",
+    "A-08" : "=============================",
     "update_server_url" : "",
     "cicd_server": "",
     "tls_required": true,
@@ -71,7 +82,7 @@
     ],
     
 
-    "A-09": "=============================",
+    "A-09" : "=============================",
     "log_paths": [
         "/var/log/auth.log",
         "/var/log/syslog",
@@ -80,7 +91,7 @@
     "monitoring_tool_url": "",
     "backup_policy_days": 180,
 
-    "A-10": "==============================",
+    "A-10" : "=============================",
     "client_offer_url": "",
     "metadata_url": "",
     "local_urls" : ["http://127.0.0.1", "http://localhost", "http://[::1]"],

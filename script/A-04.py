@@ -8,7 +8,8 @@ with open(config_path, "r") as f:
     config = json.load(f)
 
 base_url = config.get("base_url", "").strip()
-api_paths = config.get("api_paths", ["/api/debug"]).strip()
+api_paths = config.get("api_paths", ["/api/debug"])
+requirements_path = config.get("requirements_path", "").strip()
 
 def append_results_to_file(result_filename, content):
     with open(result_filename, "a") as result_file:
@@ -32,8 +33,8 @@ def check_debug_mode(result_filename):
         append_results_to_file(result_filename, f"[ERROR] Could not check debug mode: {e}")
 
 def check_public_api_access(result_filename):
-    if not api_paths:
-        append_results_to_file(result_filename, "[INFO] Skipping public API access check as api_paths is not defined.")
+    if not api_paths or not isinstance(api_paths, list):
+        append_results_to_file(result_filename, "[INFO] Skipping public API access check (no valid API paths provided).")
         return
     
     for api_path in api_paths:
@@ -50,9 +51,11 @@ def check_public_api_access(result_filename):
 def check_security_requirements(result_filename):
     append_results_to_file(result_filename, "[INFO] Checking security requirements documentation...")
 
-    
-    requirements_path = config.get("requirements_path", "").strip()
-    if requirements_path and os.path.exists(requirements_path):
+    if not requirements_path:
+        append_results_to_file(result_filename, "[INFO] Skipping security requirements check (requirements path not provided).\n")
+        return
+
+    if os.path.exists(requirements_path):
         append_results_to_file(result_filename, "[SAFE] Security requirements documentation found.")
     else:
         append_results_to_file(result_filename, "[CAUTION] No security requirements documentation found.")

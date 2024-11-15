@@ -15,6 +15,7 @@ class AccessControlDiagnosticTool:
         self.base_url = config.get("base_url")
         self.admin_path = config.get("admin_path")
         self.login_path = config.get("login_path")
+        self.sensitive_paths = config.get("sensitive_paths")
         self.api_path = config.get("api_paths", ["/api"])[0] if isinstance(config.get("api_paths"), list) else config.get("api_paths")
         self.original_token = config.get("original_token")
         self.secret_key = config.get("secret_key")
@@ -62,16 +63,19 @@ class AccessControlDiagnosticTool:
     def check_access_sensitive_url(self, result_filename):
         with open(result_filename, "a") as result_file:
             result_file.write("[INFO] Checking sensitive URL access.\n")
+
             if not self.base_url:
                 result_file.write("[INFO] Skipping sensitive URL access check (Base URL not provided).\n")
                 return
 
-            sensitive_paths = ['/admin', '/config', '/backup', '/user/settings', self.admin_path]
-            robots_disallowed_paths = self.fetch_robots_disallowed_paths()
-            sensitive_paths.extend(robots_disallowed_paths)
-            sensitive_paths = list(set(sensitive_paths))
+            combined_sensitive_paths = list(set((self.sensitive_paths or []) + self.fetch_robots_disallowed_paths()))
+            if not combined_sensitive_paths:
+                result_file.write("[INFO] No sensitive paths to check.\n")
+            else:
+                result_file.write(f"[INFO] Total sensitive paths to check: {len(combined_sensitive_paths)}\n")
+                return
 
-            for path in sensitive_paths:
+            for path in combined_sensitive_paths:
                 url = self.base_url + path
                 try:
                     response = requests.get(url, allow_redirects=False)
@@ -88,7 +92,7 @@ class AccessControlDiagnosticTool:
                 
                 except requests.exceptions.RequestException as e:
                     result_file.write(f"[ERROR] Unable to access {url}. Error: {e}\n")
-                    continue
+
 
     def check_api_access_control(self, result_filename):
         with open(result_filename, "a") as result_file:

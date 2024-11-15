@@ -4,9 +4,7 @@ def check_installed_libraries():
     required_libraries = [
         "requests",
         "bs4",
-        "jwt",
-        "os",
-        "sqlite3"
+        "jwt"
     ]
 
     missing_libraries = []
