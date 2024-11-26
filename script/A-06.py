@@ -5,9 +5,15 @@ import subprocess
 import platform
 from datetime import datetime
 
-config_path = os.path.join(os.path.dirname(__file__), "../settings/config.json")
+config_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../settings/config.json"))
+if not os.path.exists(config_path):
+    raise FileNotFoundError(f"Config file not found at: {config_path}")
+print(f"Using config file at: {config_path}")
+
 with open(config_path, "r") as f:
     config = json.load(f)
+
+
 
 cve_api_url = config.get("cve_api_url", "").strip()
 dependency_file = config.get("dependency_file", "").strip()

@@ -65,6 +65,7 @@ def run_diagnostics():
         result_file.write(f"Libraries: {library_status}\n\n")
         
         script_directory = os.path.join(os.path.dirname(__file__), "script")
+        print("Files in script directory:", os.listdir(script_directory))
         for category in selected_categories:
             module_path = os.path.join(script_directory, f"{category}.py")  # Linux or Windows directory
             try:
