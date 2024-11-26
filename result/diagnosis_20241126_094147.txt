@@ -1,0 +1,133 @@
+OWASP Top 10 2021 Diagnostics Results
+System: Windows 11
+Libraries: All required libraries are installed.
+
+ot found or inaccessible (status code 404).
+[INFO] Checking sensitive URL access.
+[INFO] Total sensitive paths to check: 3
+[DEBUG] Checking URL: http://52.78.203.0/config - Status Code: 301
+[Need to Check] Unexpected response code 301 for http://52.78.203.0/config
+[DEBUG] Checking URL: http://52.78.203.0/admin - Status Code: 301
+[Need to Check] Unexpected response code 301 for http://52.78.203.0/admin
+[DEBUG] Checking URL: http://52.78.203.0/backup - Status Code: 404
+[SAFE] Path not found: http://52.78.203.0/backup
+[INFO] Checking API access control.
+[Need to Check] Status code 404 for GET request to http://52.78.203.0/api/login
+[Need to Check] Status code 404 for POST request to http://52.78.203.0/api/login
+[Need to Check] Status code 405 for DELETE request to http://52.78.203.0/api/login
+[INFO] Checking Session expiration.
+[INFO] Checking metadata manipulation.
+[INFO] Skipping metadata manipulation check (Token or Secret Key not provided).
+[INFO] Checking CORS configuration.
+[SAFE] CORS configuration not set.
+[INFO] Checking hidden fields.
+[INFO] Skipping hidden fields check (No pages provided).
+[INFO] Checking Error messages in web pages.
+[INFO] Skipping error message check (No pages provided).
+Results for A-01: Access Control Diagnostics
+
+[INFO] robots.txt not found or inaccessible (status code 404).
+[INFO] Checking sensitive URL access.
+[INFO] Total sensitive paths to check: 3
+[DEBUG] Checking URL: http://52.78.203.0/config - Status Code: 301
+[Need to Check] Unexpected response code 301 for http://52.78.203.0/config
+[DEBUG] Checking URL: http://52.78.203.0/admin - Status Code: 301
+[Need to Check] Unexpected response code 301 for http://52.78.203.0/admin
+[DEBUG] Checking URL: http://52.78.203.0/backup - Status Code: 404
+[SAFE] Path not found: http://52.78.203.0/backup
+[INFO] Checking API access control.
+[Need to Check] Status code 404 for GET request to http://52.78.203.0/api/login
+[Need to Check] Status code 404 for POST request to http://52.78.203.0/api/login
+[Need to Check] Status code 405 for DELETE request to http://52.78.203.0/api/login
+[INFO] Checking Session expiration.
+[INFO] Checking metadata manipulation.
+[INFO] Skipping metadata manipulation check (Token or Secret Key not provided).
+[INFO] Checking CORS configuration.
+[SAFE] CORS configuration not set.
+[INFO] Checking hidden fields.
+[INFO] Skipping hidden fields check (No pages provided).
+[INFO] Checking Error messages in web pages.
+[INFO] Skipping error message check (No pages provided).
+
+=== A-02 OWASP Cryptograph Failures ===
+
+[ERROR] Database type detection failed: Unsupported or undetected DBMS type
+[CAUTION] Does not use HTTPS Protocol
+[CAUTION] HSTS is not enabled.
+[WARNING] No directory specified for hardcoded secret key check.
+
+=== A-03 Injection Diagnostics ===
+
+[CAUTION] Potential SQL Injection detected with payload: '
+[CAUTION] Potential SQL Injection detected with payload:  OR 1=1--
+[CAUTION] Potential SQL Injection detected with payload:  OR 1=1 #
+[CAUTION] Potential SQL Injection detected with payload:  OR '1'='1' #' OR '1'='1
+[CAUTION] Potential NoSQL Injection detected
+[SAFE] No Command Injection detected for payload: ; ls
+[SAFE] No Command Injection detected for payload: && ls
+[SAFE] No Command Injection detected for payload: | ls
+
+=== A-04 Insecure Design Diagnostics ===
+
+[SAFE] Debug mode is not enabled.
+[SAFE] API endpoint is not accessible publicly: http://52.78.203.0/api/login
+[SAFE] API endpoint is not accessible publicly: http://52.78.203.0/api/posts
+[INFO] Checking security requirements documentation...
+[INFO] Skipping security requirements check (requirements path not provided).
+
+[INFO] Checking default settings for unsafe configurations.
+[CAUTION] Default admin account or password detected.
+
+=== A-05 Security Misconfiguration Diagnostics ===
+
+[ERROR] Could not check unnecessary features: Invalid URL '': No scheme supplied. Perhaps you meant https://?
+[CAUTION] Default admin account or password detected. Please change them.
+[ERROR] Could not check security headers: Invalid URL '': No scheme supplied. Perhaps you meant https://?
+[INFO] Please ensure that all software and dependencies are up-to-date.
+[SAFE] Write permission is disabled for .
+[ERROR] Could not check directory : Invalid URL '': No scheme supplied. Perhaps you meant https://?
+
+=== A-06 Vulnerable and Outdated Components Diagnostics ===
+
+Results for A-06:
+Module not found.
+
+
+=== A-07 Identification and Authentication Failures Diagnostics ===
+
+[INFO] Session timeout configuration missing.
+[INFO] Login attempt limit configuration missing.
+[INFO] Password hash method configuration missing.
+
+=== A-08 Software and Data Integrity Failures Diagnostics ===
+
+[INFO] Update server URL not specified. Skipping update server check.
+[INFO] Missing data for unknown library. Skipping integrity check.
+[INFO] No CI/CD server specified. Skipping CI/CD security check.
+[ERROR] Environment file  not found.
+
+=== A-09 Security Logging and Monitoring Failures Diagnostics ===
+
+[ERROR] Log file /var/log/auth.log not found.
+[ERROR] Log file /var/log/syslog not found.
+[ERROR] Log file /path/to/custom.log not found.
+[ERROR] Log file /var/log/auth.log not found. Skipping permission check.
+[ERROR] Log file /var/log/syslog not found. Skipping permission check.
+[ERROR] Log file /path/to/custom.log not found. Skipping permission check.
+[INFO] No monitoring tool URL specified. Skipping monitoring tool status check.
+[ERROR] Log file /var/log/auth.log not found. Skipping backup check.
+[ERROR] Log file /var/log/syslog not found. Skipping backup check.
+[ERROR] Log file /path/to/custom.log not found. Skipping backup check.
+
+=== A-10 Server-Side Request Forgery (SSRF) Diagnostics ===
+
+[INFO] Client offer URL not specified. Skipping server-side request check.
+[CAUTION]  is not within allowed domains.
+[INFO] Metadata URL not specified. Skipping metadata block check.
+[SAFE] Access Denied to internal IP http://127.0.0.1.
+[SAFE] Access Denied to internal IP http://localhost.
+[SAFE] Access Denied to internal IP http://[::1].
+[INFO] GET method allowed.
+[INFO] POST method allowed.
+[SAFE] PUT method denied
+[SAFE] DELETE method denied

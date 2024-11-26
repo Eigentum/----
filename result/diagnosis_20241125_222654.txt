@@ -1,0 +1,57 @@
+OWASP Top 10 2021 Diagnostics Results
+System: Windows 11
+Libraries: All required libraries are installed.
+
+
+[INFO] Checking sensitive URL access.
+[INFO] Total sensitive paths to check: 3
+[DEBUG] Checking URL: http://52.78.203.0/backup - Status Code: 404
+[SAFE] Path not found: http://52.78.203.0/backup
+[DEBUG] Checking URL: http://52.78.203.0/admin - Status Code: 301
+[Need to Check] Unexpected response code 301 for http://52.78.203.0/admin
+[DEBUG] Checking URL: http://52.78.203.0/config - Status Code: 301
+[Need to Check] Unexpected response code 301 for http://52.78.203.0/config
+[INFO] Checking API access control.
+[Need to Check] Status code 404 for GET request to http://52.78.203.0/api/login
+[Need to Check] Status code 404 for POST request to http://52.78.203.0/api/login
+[Need to Check] Status code 405 for DELETE request to http://52.78.203.0/api/login
+[INFO] Checking Session expiration.
+[INFO] Checking metadata manipulation.
+[INFO] Skipping metadata manipulation check (Token or Secret Key not provided).
+[INFO] Checking CORS configuration.
+[SAFE] CORS configuration not set.
+[INFO] Checking hidden fields.
+[INFO] Skipping hidden fields check (No pages provided).
+[INFO] Checking Error messages in web pages.
+[INFO] Skipping error message check (No pages provided).
+Results for A-01: Access Control Diagnostics
+
+[INFO] robots.txt not found or inaccessible (status code 404).
+[INFO] Checking sensitive URL access.
+[INFO] Total sensitive paths to check: 3
+[DEBUG] Checking URL: http://52.78.203.0/backup - Status Code: 404
+[SAFE] Path not found: http://52.78.203.0/backup
+[DEBUG] Checking URL: http://52.78.203.0/admin - Status Code: 301
+[Need to Check] Unexpected response code 301 for http://52.78.203.0/admin
+[DEBUG] Checking URL: http://52.78.203.0/config - Status Code: 301
+[Need to Check] Unexpected response code 301 for http://52.78.203.0/config
+[INFO] Checking API access control.
+[Need to Check] Status code 404 for GET request to http://52.78.203.0/api/login
+[Need to Check] Status code 404 for POST request to http://52.78.203.0/api/login
+[Need to Check] Status code 405 for DELETE request to http://52.78.203.0/api/login
+[INFO] Checking Session expiration.
+[INFO] Checking metadata manipulation.
+[INFO] Skipping metadata manipulation check (Token or Secret Key not provided).
+[INFO] Checking CORS configuration.
+[SAFE] CORS configuration not set.
+[INFO] Checking hidden fields.
+[INFO] Skipping hidden fields check (No pages provided).
+[INFO] Checking Error messages in web pages.
+[INFO] Skipping error message check (No pages provided).
+
+=== A-02 OWASP Cryptograph Failures ===
+
+[ERROR] Database type detection failed: Unsupported or undetected DBMS type
+[CAUTION] Does not use HTTPS Protocol
+[CAUTION] HSTS is not enabled.
+[WARNING] No directory specified for hardcoded secret key check.

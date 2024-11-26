@@ -39,26 +39,27 @@ class AccessControlDiagnosticTool:
         self.check_hidden_fields(result_filename)
         self.check_error_messages(result_filename)
 
-    def fetch_robots_disallowed_paths(self):
-        robots_url = self.base_url + "/robots.txt"
-        disallowed_paths = []
-        try:
-            response = requests.get(robots_url)
-            if response.status_code == 200:
-                lines = response.text.splitlines()
-                for line in lines:
-                    line = line.strip()
-                    if line.startswith("Disallow:"):
-                        path = line.split(":", 1)[1].strip()
-                        if path:
-                            disallowed_paths.append(path)
-                print(f"[INFO] Found {len(disallowed_paths)} disallowed paths in robots.txt")
-            else:
-                print(f"[WARNING] robots.txt not found or inaccessible (status code {response.status_code}).")
-        except requests.RequestException as e:
-            print(f"[ERROR] Failed to retrieve robots.txt {e}")
+    def fetch_robots_disallowed_paths(self, result_filename):
+        with open(result_filename, "a") as result_file:
+            robots_url = self.base_url + "/robots.txt"
+            disallowed_paths = []
+            try:
+                response = requests.get(robots_url)
+                if response.status_code == 200:
+                    lines = response.text.splitlines()
+                    for line in lines:
+                        line = line.strip()
+                        if line.startswith("Disallow:"):
+                            path = line.split(":", 1)[1].strip()
+                            if path:
+                                disallowed_paths.append(path)
+                    result_file.write(f"[INFO] Found {len(disallowed_paths)} disallowed paths in robots.txt")
+                else:
+                    result_file.write(f"[INFO] robots.txt not found or inaccessible (status code {response.status_code}).\n")
+            except requests.RequestException as e:
+                result_file.write(f"[ERROR] Failed to retrieve robots.txt {e}")
 
-        return disallowed_paths
+            return disallowed_paths
 
     def check_access_sensitive_url(self, result_filename):
         with open(result_filename, "a") as result_file:
@@ -68,12 +69,12 @@ class AccessControlDiagnosticTool:
                 result_file.write("[INFO] Skipping sensitive URL access check (Base URL not provided).\n")
                 return
 
-            combined_sensitive_paths = list(set((self.sensitive_paths or []) + self.fetch_robots_disallowed_paths()))
+            combined_sensitive_paths = list(set((self.sensitive_paths or []) + self.fetch_robots_disallowed_paths(result_filename)))
             if not combined_sensitive_paths:
                 result_file.write("[INFO] No sensitive paths to check.\n")
-            else:
-                result_file.write(f"[INFO] Total sensitive paths to check: {len(combined_sensitive_paths)}\n")
-                return
+                return  # 여기서도 종료 필요
+
+            result_file.write(f"[INFO] Total sensitive paths to check: {len(combined_sensitive_paths)}\n")
 
             for path in combined_sensitive_paths:
                 url = self.base_url + path
@@ -241,6 +242,9 @@ class AccessControlDiagnosticTool:
 
 
 def run_diagnosis(result_filename):
+    with open(result_filename, "a") as result_file:
+            result_file.write("\n=== A-01 OWASP Broken Access Control ===\n")
+    
     tool = AccessControlDiagnosticTool()
     tool.perform_diagnostics(result_filename)
     try:

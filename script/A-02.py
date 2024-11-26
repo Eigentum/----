@@ -17,7 +17,7 @@ def append_results_to_file(result_filename, content):
 
 db_path = config.get("db_path", "").strip()
 if not db_path:
-    db_path = input("Enter DB path or connection info > ").strip()
+    db_path = "No DB's Path."
 
 table_name = config.get("table_name", "").strip()
 if not table_name:
