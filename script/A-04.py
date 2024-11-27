@@ -78,3 +78,5 @@ def run_diagnosis(result_filename):
     check_public_api_access(result_filename)
     check_security_requirements(result_filename)
     check_default_settings(result_filename)
+
+    append_results_to_file(result_filename, "\n=== End of A-04 Diagnostics ===\n")

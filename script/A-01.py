@@ -243,13 +243,14 @@ class AccessControlDiagnosticTool:
 
 def run_diagnosis(result_filename):
     with open(result_filename, "a") as result_file:
-            result_file.write("\n=== A-01 OWASP Broken Access Control ===\n")
+        result_file.write("\n=== A-01 OWASP Broken Access Control ===\n")
     
     tool = AccessControlDiagnosticTool()
-    tool.perform_diagnostics(result_filename)
     try:
         tool.perform_diagnostics(result_filename)
     except Exception as e:
         with open(result_filename, "a") as result_filename:
             result_filename.write(f"[ERROR] Diagnostic failed: {str(e)}\n")
 
+    with open(result_filename, "a") as result_file:
+        result_file.write("\n=== End of A-01 Diagnostics ===\n")

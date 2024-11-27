@@ -274,7 +274,7 @@ def run_diagnosis(result_filename):
     else:
         append_results_to_file(result_filename, "[WARNING] No directory specified for hardcoded secret key check.")
 
-
+    append_results_to_file(result_filename, "\n=== End of A-02 Diagnostics ===\n")
 
 
 

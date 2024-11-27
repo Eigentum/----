@@ -63,26 +63,32 @@ def run_diagnostics():
         result_file.write("OWASP Top 10 2021 Diagnostics Results\n")
         result_file.write(f"System: {system_info}\n")
         result_file.write(f"Libraries: {library_status}\n\n")
+        result_file.flush()
         
-        script_directory = os.path.join(os.path.dirname(__file__), "script")
-        print("Files in script directory:", os.listdir(script_directory))
-        for category in selected_categories:
-            module_path = os.path.join(script_directory, f"{category}.py")  # Linux or Windows directory
-            try:
-                print(f"Running diagnostics for {category}...")
-                spec = importlib.util.spec_from_file_location(category, module_path)
-                module = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(module)
-                module.run_diagnosis(result_filename)  # Assume each module has run_diagnosis function
+    script_directory = os.path.join(os.path.dirname(__file__), "script")
+    for category in selected_categories:
+        module_path = os.path.join(script_directory, f"{category}.py")
+        if not os.path.exists(module_path):
+            print(f"Module file {module_path} not found.")
+            with open(result_filename, "a") as result_file:
+                result_file.write(f"Results for {category}:\nModule not found.\n\n")
+            continue
+
+        try:
+            print(f"Running diagnostics for {category}...")
+            spec = importlib.util.spec_from_file_location(category, module_path)
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            
+            if hasattr(module, "run_diagnosis"):  # 함수 존재 여부 확인
+                module.run_diagnosis(result_filename)
                 print(f"{category} diagnostics completed.")
-            except FileNotFoundError:
-                print(f"Module file {module_path} not found.")
-                with open(result_filename, "a") as result_file:
-                    result_file.write(f"Results for {category}:\nModule not found.\n\n")
-            except AttributeError:
-                print(f"Error: 'run_diagnosis' function not found in {module_path}.")
-                with open(result_filename, "a") as result_file:
-                    result_file.write(f"Results for {category}:\n'run_diagnosis' function not found.\n\n")
+            else:
+                raise AttributeError(f"'run_diagnosis' function not found in {module_path}.")
+        except Exception as e:
+            print(f"Error during {category} diagnostics: {e}")
+            with open(result_filename, "a") as result_file:
+                result_file.write(f"Results for {category}:\nError: {e}\n\n")
 
     print(f"Diagnostics completed. Results saved to {result_filename}.")
 

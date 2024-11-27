@@ -117,3 +117,5 @@ def run_diagnosis(result_filename):
     check_external_libraries(result_filename)
     check_cicd_security(result_filename)
     check_env_files(result_filename)
+
+    append_results_to_file(result_filename, "\n=== End of A-08 Diagnostics ===\n")

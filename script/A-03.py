@@ -11,7 +11,7 @@ base_url = config.get("base_url", "").strip()
 login_path = config.get("login_path", "").strip()
 db_path = config.get("db_path", "").strip()
 admin_id = config.get("admin_id", "").strip()
-cmd_injection_payload = config.get("command_injection_payloads","").strip()
+cmd_injection_payload = config.get("command_injection_payloads", [])
 
 def append_results_to_file(result_filename, content):
     with open(result_filename, "a") as result_file:
@@ -46,6 +46,10 @@ def check_nosql_injection(result_filename):
         append_results_to_file(result_filename, f"[ERROR] Error occurred while testing NoSQL Injection: {e}")
 
 def check_command_injection(result_filename):
+    if not cmd_injection_payload or not isinstance(cmd_injection_payload, list):
+        append_results_to_file(result_filename, "[INFO] Command injection payloads not configured or invalid.")
+        return 
+    
     for payload in cmd_injection_payload:
         url = f"{base_url}{login_path}?username={admin_id}&password=admin{payload}"
         try:
@@ -64,3 +68,4 @@ def run_diagnosis(result_filename):
     check_nosql_injection(result_filename)
     check_command_injection(result_filename)
 
+    append_results_to_file(result_filename, "\n=== End of A-03 Diagnostics ===\n")

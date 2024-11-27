@@ -91,3 +91,5 @@ def run_diagnosis(result_filename):
     check_log_file_permissions(result_filename)
     check_monitoring_tool_status(result_filename)
     check_log_backup_policy(result_filename)
+
+    append_results_to_file(result_filename, "\n=== End of A-09 Diagnostics ===\n")

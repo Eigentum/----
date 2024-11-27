@@ -59,22 +59,30 @@ def check_password_policy(result_filename):
         append_results_to_file(result_filename, "[INFO] Password policy configuration not found.")
 
 
-def get_session_timeout():
+def get_session_timeout(result_filename):
     try:
-        if os.name == 'posix':
+        if os.name == 'nt':  # Windows
+            try:
+                result = subprocess.check_output(
+                    ['reg', 'query', 'HKCU\\Control Panel\\Desktop', '/v', 'ScreenSaveTimeOut'], 
+                    text=True
+                )
+                for line in result.splitlines():
+                    if 'ScreenSaveTimeOut' in line:
+                        return int(line.split()[-1]) // 60
+            except subprocess.CalledProcessError:
+                append_results_to_file(result_filename, "[INFO] Screen saver timeout registry key not found or not configured.")
+        elif os.name == 'posix':  # Linux/Unix
             timeout = os.environ.get('TMOUT', None)
             if timeout:
                 return int(timeout) // 60
-        elif os.name == 'nt':
-            result = subprocess.check_output(['reg', 'query', 'HKCU\\Control Panel\\Desktop', '/v', 'ScreenSaveTimeOut'], text=True)
-            for line in result.splitlines():
-                if 'ScreenSaveTimeOut' in line:
-                    return int(line.split()[-1]) // 60
+        append_results_to_file(result_filename, "[INFO] Session timeout not configured on this system.")
     except Exception as e:
-        print(f"[INFO] Unable to load session timeout data: {e}")
+        append_results_to_file(result_filename, f"[ERROR] Unable to determine session timeout: {e}")
     return int(session_timeout_config) if session_timeout_config else None
 
-def get_login_attempt_limit():
+
+def get_login_attempt_limit(result_filename):
     try:
         if os.name == 'posix':
             result = subprocess.check_output(['grep', '^deny', '/etc/security/faillock.conf', '/etc/pam.d/common-auth'], text=True)
@@ -85,7 +93,7 @@ def get_login_attempt_limit():
         print("[INFO] Login attempt limit configuration not found in system files.")
     return int(login_attempt_limit_config) if login_attempt_limit_config else None
 
-def get_password_hash_method():
+def get_password_hash_method(result_filename):
     try:
         if os.name == 'posix' and os.path.exists('/etc/shadow'):
             result = subprocess.check_output(['grep', '-E', '^[^:]+:[$]', '/etc/shadow'], text=True)
@@ -97,27 +105,30 @@ def get_password_hash_method():
                 return "bcrypt"
             elif "$1$" in result:
                 return "MD5"
+        append_results_to_file(result_filename, "[INFO] Password hash method not configured on this system.")
     except subprocess.CalledProcessError:
-        print("[INFO] Password hashing method configuration not found. Refer to config.json.")
+        append_results_to_file(result_filename, "[INFO] Password hashing method configuration not found.")
     return password_hash_method_config if password_hash_method_config else None
 
 def run_diagnosis(result_filename):
     append_results_to_file(result_filename, "\n=== A-07 Identification and Authentication Failures Diagnostics ===\n")
 
-    session_timeout = get_session_timeout()
+    session_timeout = get_session_timeout(result_filename)
     if session_timeout:
         append_results_to_file(result_filename, f"[SAFE] Session timeout is set to {session_timeout} minutes.")
     else:
         append_results_to_file(result_filename, "[INFO] Session timeout configuration missing.")
 
-    login_attempt_limit = get_login_attempt_limit()
+    login_attempt_limit = get_login_attempt_limit(result_filename)
     if login_attempt_limit:
         append_results_to_file(result_filename, f"[SAFE] Login attempt limit is set to {login_attempt_limit} attempts.")
     else:
         append_results_to_file(result_filename, "[INFO] Login attempt limit configuration missing.")
 
-    password_hash_method = get_password_hash_method()
+    password_hash_method = get_password_hash_method(result_filename)
     if password_hash_method:
         append_results_to_file(result_filename, f"[SAFE] Password hash method is {password_hash_method}.")
     else:
         append_results_to_file(result_filename, "[INFO] Password hash method configuration missing.")
+
+    append_results_to_file(result_filename, "\n=== End of A-07 Diagnostics ===\n")

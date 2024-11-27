@@ -93,4 +93,4 @@ def run_diagnosis(result_filename):
     check_url_filtering(result_filename)
     check_allowed_methods(result_filename)
 
-
+    append_results_to_file(result_filename, "\n=== End of A-10 Diagnostics ===\n")

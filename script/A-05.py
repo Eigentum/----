@@ -99,3 +99,5 @@ def run_diagnosis(result_filename):
     check_latest_patch(result_filename)
     check_directory_permissions(result_filename)
     check_directory_indexing(result_filename)
+
+    append_results_to_file(result_filename, "\n=== End of A-05 Diagnostics ===\n")
