@@ -18,6 +18,7 @@ def append_results_to_file(result_filename, content):
         result_file.write(content + "\n")
         
 def check_sql_injection(result_filename):
+    append_results_to_file(result_filename,"\n===== Check SQL Injection availability =====")
     vulnerable_params = ["'", " OR 1=1--", " OR 1=1 #", " OR '1'='1' #" "' OR '1'='1"]
 
     for param in vulnerable_params:
@@ -32,6 +33,7 @@ def check_sql_injection(result_filename):
             append_results_to_file(result_filename, f"[ERROR] Error occurred while testing SQL Injection: {e}")
 
 def check_nosql_injection(result_filename):
+    append_results_to_file(result_filename,"\n===== Check noSQL injection availability =====")
     nosql_payload = {"$ne": None}
     payload_str = urlencode(nosql_payload)
     url = f"{base_url}{login_path}?username={admin_id}&password={payload_str}"
@@ -46,6 +48,7 @@ def check_nosql_injection(result_filename):
         append_results_to_file(result_filename, f"[ERROR] Error occurred while testing NoSQL Injection: {e}")
 
 def check_command_injection(result_filename):
+    append_results_to_file(result_filename,"\n===== Check Command injection availability =====")
     if not cmd_injection_payload or not isinstance(cmd_injection_payload, list):
         append_results_to_file(result_filename, "[INFO] Command injection payloads not configured or invalid.")
         return 
@@ -62,8 +65,10 @@ def check_command_injection(result_filename):
             append_results_to_file(result_filename, f"[ERROR] Error occurred while testing Command Injection: {e}")
 
 def run_diagnosis(result_filename):
-    append_results_to_file(result_filename, "\n=== A-03 Injection Diagnostics ===\n")
-    
+    append_results_to_file(result_filename, "\n==================================")
+    append_results_to_file(result_filename, "=== A-03 Injection Diagnostics ===")
+    append_results_to_file(result_filename, "==================================")
+
     check_sql_injection(result_filename)
     check_nosql_injection(result_filename)
     check_command_injection(result_filename)

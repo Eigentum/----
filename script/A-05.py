@@ -11,18 +11,20 @@ base_url = config.get("base_rul", "").strip()
 default_admin_account = config.get("default_admin_account", "")
 default_admin_password = config.get("default_admin_password", "")
 
-if platform.system() == "Windows":
-    important_dirs = config.get("important_dirs_windows", "")
-    sensitive_dirs = config.get("sensitive_dirs_windows", "")
-else:
-    important_dirs = config.get("important_dirs_linux", "")
-    sensitive_dirs = config.get("sensitive_dirs_linux", "")
+os_name = platform.system().lower()
+if os_name not in ["linux", "windows"]:
+    raise ValueError(f"Unsupported OS: {os_name}")
+
+important_dirs = config.get(f"important_dirs_{os_name}", [])
+sensitive_dirs = config.get(f"sensitive_dirs_{os_name}", [])
+
 
 def append_results_to_file(result_filename, content):
     with open(result_filename, "a") as result_file:
         result_file.write(content + "\n")
 
 def check_unnecessary_features(result_filename):
+    append_results_to_file(result_filename, "\n===== Check for activation of unnecessary HTTP methods. =====")
     try:
         response = requests.get(base_url)
         if "TRACE" in response.headers.get("Allow", ""):
@@ -33,12 +35,30 @@ def check_unnecessary_features(result_filename):
         append_results_to_file(result_filename, f"[ERROR] Could not check unnecessary features: {e}")
 
 def check_default_account(result_filename):
-    if default_admin_account or default_admin_password:
-        append_results_to_file(result_filename, "[CAUTION] Default admin account or password detected. Please change them.")
+    append_results_to_file(result_filename, "\n===== Check default account usage =====")
+    
+    if os_name == "Linux":
+        command = "cat /etc/passwd"
+    elif os_name == "Windows":
+        command = "net user"
     else:
-        append_results_to_file(result_filename, "[SAFE] No default admin account or password detected.")
+        append_results_to_file(result_filename, f"[INFO] OS {os_name} is not supported for default account checks.\n")
+        return
+
+    try:
+        result = os.popen(command).read()
+        if default_admin_account in result or default_admin_password in result:
+            append_results_to_file(
+                result_filename,
+                f"[CAUTION] Default admin account or password detected on {os_name} system.\n"
+            )
+        else:
+            append_results_to_file(result_filename, f"[SAFE] No default admin account or password detected on {os_name} system.\n")
+    except Exception as e:
+        append_results_to_file(result_filename, f"[ERROR] Could not check default accounts: {e}")
 
 def check_security_headers(result_filename):
+    append_results_to_file(result_filename, "\n===== Check if 'Security Header' is set in HTTP Response Header. =====")
     try:
         response = requests.get(base_url)
         headers = response.headers
@@ -61,9 +81,10 @@ def check_security_headers(result_filename):
         append_results_to_file(result_filename, f"[ERROR] Could not check security headers: {e}")
 
 def check_latest_patch(result_filename):
-    append_results_to_file(result_filename, "[INFO] Please ensure that all software and dependencies are up-to-date.")
+    append_results_to_file(result_filename, "[Advice] Please ensure that all software and dependencies are up-to-date.")
 
 def check_directory_permissions(result_filename):
+    append_results_to_file(result_filename, "\n===== Check 'write' permissions on critical directories. =====")
     for dir_path in important_dirs:
         try:
             if os.access(dir_path, os.W_OK):
@@ -74,6 +95,7 @@ def check_directory_permissions(result_filename):
             append_results_to_file(result_filename, f"[ERROR] Could not check permissions for {dir_path}: {e}")
 
 def check_directory_indexing(result_filename):
+    append_results_to_file(result_filename, "\n===== Check if sensitive directories are publicly indexed. =====")
     for dir_path in sensitive_dirs:
         url = f"{base_url}{dir_path.replace(os.sep, '/')}"
         try:
@@ -91,8 +113,9 @@ def check_directory_indexing(result_filename):
             append_results_to_file(result_filename, f"[ERROR] Could not check directory {dir_path}: {e}")
 
 def run_diagnosis(result_filename):
-    append_results_to_file(result_filename, "\n=== A-05 Security Misconfiguration Diagnostics ===\n")
-    
+    append_results_to_file(result_filename, "\n==================================================")
+    append_results_to_file(result_filename, "=== A-05 Security Misconfiguration Diagnostics ===")
+    append_results_to_file(result_filename, "==================================================")
     check_unnecessary_features(result_filename)
     check_default_account(result_filename)
     check_security_headers(result_filename)

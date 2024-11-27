@@ -52,6 +52,7 @@ def get_password_policy():
         print("[INFO] Password policy not found in the expected files..")
 
 def check_password_policy(result_filename):
+    append_results_to_file(result_filename, "\n===== Check Password Policy. =====")
     password_policy = get_password_policy()
     if password_policy:
         append_results_to_file(result_filename, f"[SAFE] Password minimum length policy: {password_policy}")
@@ -60,6 +61,7 @@ def check_password_policy(result_filename):
 
 
 def get_session_timeout(result_filename):
+    append_results_to_file(result_filename, "\n===== Check to manage session expiration settings =====")
     try:
         if os.name == 'nt':  # Windows
             try:
@@ -83,6 +85,7 @@ def get_session_timeout(result_filename):
 
 
 def get_login_attempt_limit(result_filename):
+    append_results_to_file(result_filename, "\n===== Check whether login attempt limit is set =====")
     try:
         if os.name == 'posix':
             result = subprocess.check_output(['grep', '^deny', '/etc/security/faillock.conf', '/etc/pam.d/common-auth'], text=True)
@@ -94,6 +97,7 @@ def get_login_attempt_limit(result_filename):
     return int(login_attempt_limit_config) if login_attempt_limit_config else None
 
 def get_password_hash_method(result_filename):
+    append_results_to_file(result_filename, "\n===== Check the hash method of the password. =====")
     try:
         if os.name == 'posix' and os.path.exists('/etc/shadow'):
             result = subprocess.check_output(['grep', '-E', '^[^:]+:[$]', '/etc/shadow'], text=True)
@@ -111,7 +115,9 @@ def get_password_hash_method(result_filename):
     return password_hash_method_config if password_hash_method_config else None
 
 def run_diagnosis(result_filename):
-    append_results_to_file(result_filename, "\n=== A-07 Identification and Authentication Failures Diagnostics ===\n")
+    append_results_to_file(result_filename, "\n===================================================================")
+    append_results_to_file(result_filename, "=== A-07 Identification and Authentication Failures Diagnostics ===")
+    append_results_to_file(result_filename, "===================================================================")
 
     session_timeout = get_session_timeout(result_filename)
     if session_timeout:

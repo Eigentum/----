@@ -21,6 +21,7 @@ def is_windows():
     return platform.system() == "Windows"
 
 def check_log_files_exist(result_filename):
+    append_results_to_file(result_filename, "\n===== Checks for the existence of log files. =====")
     if not log_paths:
         append_results_to_file(result_filename, "[INFO] No log paths specified. Skipping log file existence check.")
         return
@@ -32,6 +33,7 @@ def check_log_files_exist(result_filename):
             append_results_to_file(result_filename, f"[ERROR] Log file {log_path} not found.")
 
 def check_log_file_permissions(result_filename):
+    append_results_to_file(result_filename, "\n===== Check permissions on log files . =====")
     if not log_paths:
         append_results_to_file(result_filename, "[INFO] No log paths specified. Skipping log file permission check.")
         return
@@ -48,6 +50,7 @@ def check_log_file_permissions(result_filename):
             append_results_to_file(result_filename, f"[ERROR] Log file {log_path} not found. Skipping permission check.")
 
 def check_monitoring_tool_status(result_filename):
+    append_results_to_file(result_filename, "\n===== Access the URL of the monitoring tool, check if the tool is working properly =====")
     if not monitoring_tool_url:
         append_results_to_file(result_filename, "[INFO] No monitoring tool URL specified. Skipping monitoring tool status check.")
         return
@@ -62,6 +65,7 @@ def check_monitoring_tool_status(result_filename):
         append_results_to_file(result_filename, f"[ERROR] Could not reach monitoring tool at {monitoring_tool_url}: {e}")
 
 def check_log_backup_policy(result_filename):
+    append_results_to_file(result_filename, "\n===== Check if log files were recently backed up, according to the backup policy. =====")
     if not backup_policy_days:
         append_results_to_file(result_filename, "[INFO] No backup policy specified. Skipping backup policy check.")
         return
@@ -85,7 +89,9 @@ def check_log_backup_policy(result_filename):
             append_results_to_file(result_filename, f"[ERROR] Log file {log_path} not found. Skipping backup check.")
 
 def run_diagnosis(result_filename):
-    append_results_to_file(result_filename, "\n=== A-09 Security Logging and Monitoring Failures Diagnostics ===\n")
+    append_results_to_file(result_filename, "\n=================================================================")
+    append_results_to_file(result_filename, "=== A-09 Security Logging and Monitoring Failures Diagnostics ===")
+    append_results_to_file(result_filename, "=================================================================")
 
     check_log_files_exist(result_filename)
     check_log_file_permissions(result_filename)

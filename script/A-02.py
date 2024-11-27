@@ -18,35 +18,42 @@ def append_results_to_file(result_filename, content):
 db_path = config.get("db_path", "").strip()
 if not db_path:
     db_path = "No DB's Path."
+    print("[WARNING] DB path is not provided. Using default: 'No DB's Path'.")
 
 table_name = config.get("table_name", "").strip()
 if not table_name:
-    table_name = input("Enter Table name that includes sensitive data > ").strip()
+    print("[WARNING] Table name is not provided. Skipping sensitive data checks.")
+    table_name = None
 
 column_name = config.get("column_name", "").strip()
 if not column_name:
-    column_name = input("Enter Column name that includes sensitive data > ").strip()
+    print("[WARNING] Column name is not provided. Skipping sensitive column checks.")
+    column_name = None
 
 url = config.get("url", "").strip()
 if not url:
-    url = input("Enter URL to check for HTTPS Protocol > ").strip()
+    print("[WARNING] URL is not provided. Skipping HTTPS checks.")
+    url = None
 
 host = config.get("db_host", "").strip()
 if not host:
-    host = input("Enter DB host > ").strip()
+    print("[WARNING] DB host is not provided. Skipping DB connection.")
+    host = None
 
 user = config.get("db_user", "").strip()
 if not user:
-    user = input("Enter DB user > ").strip()
+    print("[WARNING] DB user is not provided. Skipping DB connection.")
+    user = None
 
 password = config.get("db_password", "").strip()
 if not password:
-    password = input("Enter DB password > ").strip()
+    print("[WARNING] DB password is not provided. Skipping DB connection.")
+    password = None
 
 database = config.get("database", "").strip()
 if not database:
-    database = input("Enter DB name > ").strip()
-
+    print("[WARNING] DB name is not provided. Skipping DB connection.")
+    database = None
 
 
 def detect_dbms(db_path):
@@ -159,6 +166,7 @@ def get_sensitive_columns(db_type, conn):
 
 
 def check_hashed(data, result_filename):
+    append_results_to_file(result_filename,"\n===== Check for hashing of data. =====")
     if len(data) in [60, 64] and re.match(r'^[a-fA-F0-9]+$', data):
         append_results_to_file(result_filename, "[INFO] Data is hashed.")
         return True
@@ -167,6 +175,7 @@ def check_hashed(data, result_filename):
         return False
     
 def check_sensitive_data_encrypted(data, result_filename):
+    append_results_to_file(result_filename,"\n===== Check for sensitive data encryption. ===== ")
     sensitive_patterns = [
         r"\b\d{6}-\d{7}\b",             # 주민등록번호
         r"\b\d{4}-\d{4}-\d{4}-\d{4}\b", # 카드번호
@@ -181,6 +190,7 @@ def check_sensitive_data_encrypted(data, result_filename):
     return True
 
 def validate_encryption(data, result_filename):
+    append_results_to_file(result_filename,"\n===== Check encryption validation. =====")
     if isinstance(data, bytes) and len(data) >= 32:
         append_results_to_file(result_filename, "[INFO] Data likely encrypted with a strong algorithm.")
         return True
@@ -189,6 +199,7 @@ def validate_encryption(data, result_filename):
         return False
     
 def diagnose_sensitive_columns(db_type, conn, table_name, column_name, result_filename):
+    append_results_to_file(result_filename,"\n===== Check the sensitive column. =====")
     cursor = conn.cursor()
     cursor.execute(f"SELECT {column_name} FROM {table_name}")
     rows = cursor.fetchall()
@@ -207,6 +218,7 @@ def diagnose_sensitive_columns(db_type, conn, table_name, column_name, result_fi
 
 
 def check_https_encrypted(url, result_filename):
+    append_results_to_file(result_filename,"\n===== Checks HTTP protocol for encryption. =====")
     try:
         response = requests.get(url, verify=True)
         if response.url.startswith("https://"):
@@ -228,6 +240,7 @@ def check_https_encrypted(url, result_filename):
 
 DIR = config.get("check_hardcoded_secretkey_target_dir")
 def check_hardcoded_secret_key(DIR, result_filename):
+    append_results_to_file(result_filename,"\n===== Check the encryption key for hard coding. =====")
     file_extensions = [ext.lower() for ext in config.get("file_extensions", [])]
     secret_key_pattern = re.compile(r'(secret|key|token)\s*=\s*[\'"][a-zA-Z0-9+/=]+[\'"]', re.IGNORECASE)
     sensitive_files = []
@@ -247,8 +260,10 @@ def check_hardcoded_secret_key(DIR, result_filename):
 
 
 def run_diagnosis(result_filename):
-    append_results_to_file(result_filename, "\n=== A-02 OWASP Cryptograph Failures ===\n")
-
+    append_results_to_file(result_filename, "\n=======================================")
+    append_results_to_file(result_filename, "=== A-02 OWASP Cryptograph Failures ===")
+    append_results_to_file(result_filename, "=======================================")
+    
     try:
         db_type = detect_dbms(db_path)
         conn = get_db_connection(db_type, db_path, host=host, user=user, password=password, database=database)

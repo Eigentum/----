@@ -18,12 +18,10 @@ dependency_file = config.get("dependency_file", "").strip()
 components = config.get("components", [])
 
 def append_results_to_file(result_filename, content):
-    """Write content to the results file."""
     with open(result_filename, "a") as result_file:
         result_file.write(content + "\n")
 
 def is_windows():
-    """Check if the operating system is Windows."""
     return platform.system() == "Windows"
 
 # Dependency identification functions
@@ -84,7 +82,9 @@ def check_eol(component, result_filename):
 
 # Run diagnostics
 def run_diagnosis(result_filename):
-    append_results_to_file(result_filename, "\n=== A-06 Vulnerable and Outdated Components Diagnostics ===\n")
+    append_results_to_file(result_filename, "\n===========================================================")
+    append_results_to_file(result_filename, "=== A-06 Vulnerable and Outdated Components Diagnostics ===")
+    append_results_to_file(result_filename, "===========================================================")
 
     # Retrieve dependencies
     python_deps = []

@@ -41,7 +41,7 @@
     "default_admin_pasword": "admin",
     "important_dirs_linux": ["/", "/admin", "/config"],
     "sensitive_dirs_linux": ["/.git", "/config", "/backup", "/logs"],
-    
+    "default_accounts": ["admin", "root", "test"],
     "important_dirs_windows": [""],
     "sensitive_dirs_windows": [""],
 

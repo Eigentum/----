@@ -23,6 +23,8 @@ def is_windows():
     return platform.system() == "Windows"
 
 def check_server_side_request(result_filename):
+    append_results_to_file(result_filename, "\n===== Check Server side Request =====")
+
     if not client_offer_url:
         append_results_to_file(result_filename, "[INFO] Client offer URL not specified. Skipping server-side request check.")
         return
@@ -37,6 +39,7 @@ def check_server_side_request(result_filename):
         append_results_to_file(result_filename, "[SAFE] Server-side requests denied.")
 
 def check_whitelist(result_filename):
+    append_results_to_file(result_filename, "\n===== Check whitelist in the 'allowed_domains'=====")
     if not allowed_domains:
         append_results_to_file(result_filename, "[INFO] Allowed domains not set. Skipping whitelist check.")
         return
@@ -47,6 +50,7 @@ def check_whitelist(result_filename):
         append_results_to_file(result_filename, f"[CAUTION] {client_offer_url} is not within allowed domains.")
 
 def check_metadata_block(result_filename):
+    append_results_to_file(result_filename, "\n===== Check if access to metadata_url is blocked =====")
     if not metadata_url:
         append_results_to_file(result_filename, "[INFO] Metadata URL not specified. Skipping metadata block check.")
         return
@@ -61,6 +65,7 @@ def check_metadata_block(result_filename):
         append_results_to_file(result_filename, "[INFO] No metadata server blocking settings, skip check.")
 
 def check_url_filtering(result_filename):
+    append_results_to_file(result_filename, "\n===== Check that internal URLs included in 'local_urls' are accessible =====")
     for url in local_urls:
         try:
             response = requests.get(url, timeout=5)
@@ -69,6 +74,7 @@ def check_url_filtering(result_filename):
             append_results_to_file(result_filename, f"[SAFE] Access Denied to internal IP {url}.")
 
 def check_allowed_methods(result_filename):
+    append_results_to_file(result_filename, "\n===== Check Allowed Methods =====")
     
     if not allowed_methods:
         append_results_to_file(result_filename, "[INFO] Client offer URL not specified. Skipping HTTP method check.")
@@ -85,7 +91,9 @@ def check_allowed_methods(result_filename):
                 append_results_to_file(result_filename, f"[SAFE] {method} method denied")
 
 def run_diagnosis(result_filename):
-    append_results_to_file(result_filename, "\n=== A-10 Server-Side Request Forgery (SSRF) Diagnostics ===\n")
+    append_results_to_file(result_filename, "\n===========================================================")
+    append_results_to_file(result_filename, "=== A-10 Server-Side Request Forgery (SSRF) Diagnostics ===")
+    append_results_to_file(result_filename, "===========================================================")
 
     check_server_side_request(result_filename)
     check_whitelist(result_filename)

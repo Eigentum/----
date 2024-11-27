@@ -23,6 +23,7 @@ def validate_configurations(result_filename):
 
 
 def check_debug_mode(result_filename):
+    append_results_to_file(result_filename, "\n===== Check if debug information is enabled in the body or header of the response. =====")
     try:
         response = requests.get(base_url)
         if "DEBUG" in response.text or "debug" in response.headers.get("X-Debug", "").lower():
@@ -33,6 +34,7 @@ def check_debug_mode(result_filename):
         append_results_to_file(result_filename, f"[ERROR] Could not check debug mode: {e}")
 
 def check_public_api_access(result_filename):
+    append_results_to_file(result_filename, "\n===== Check API path access without authentication =====")
     if not api_paths or not isinstance(api_paths, list):
         append_results_to_file(result_filename, "[INFO] Skipping public API access check (no valid API paths provided).")
         return
@@ -49,6 +51,7 @@ def check_public_api_access(result_filename):
             append_results_to_file(result_filename, f"[ERROR] Error accessing API path {url}: {e}")
 
 def check_security_requirements(result_filename):
+    append_results_to_file(result_filename, "\n===== Check for the presence of a security requirement document =====")
     append_results_to_file(result_filename, "[INFO] Checking security requirements documentation...")
 
     if not requirements_path:
@@ -61,6 +64,7 @@ def check_security_requirements(result_filename):
         append_results_to_file(result_filename, "[CAUTION] No security requirements documentation found.")
 
 def check_default_settings(result_filename):
+    append_results_to_file(result_filename, "\n===== Check that 'default administrator account' and 'password' are set. =====")
     append_results_to_file(result_filename, "[INFO] Checking default settings for unsafe configurations.")
     
     default_admin_account = config.get("default_admin_account", "")
@@ -72,7 +76,9 @@ def check_default_settings(result_filename):
 
 
 def run_diagnosis(result_filename):
-    append_results_to_file(result_filename, "\n=== A-04 Insecure Design Diagnostics ===\n")
+    append_results_to_file(result_filename, "\n========================================")
+    append_results_to_file(result_filename, "=== A-04 Insecure Design Diagnostics ===")
+    append_results_to_file(result_filename, "========================================")
 
     check_debug_mode(result_filename)
     check_public_api_access(result_filename)

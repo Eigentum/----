@@ -28,7 +28,9 @@ class AccessControlDiagnosticTool:
     
     def perform_diagnostics(self, result_filename):
         with open(result_filename, "a") as result_file:
-            result_file.write("Results for A-01: Access Control Diagnostics\n\n")
+            result_file.write("========================================")
+            result_file.write("\n=== A-01 OWASP Broken Access Control ===\n")
+            result_file.write("========================================")
 
         # 진단 함수들에 result_filename 전달
         self.check_access_sensitive_url(result_filename)
@@ -41,6 +43,7 @@ class AccessControlDiagnosticTool:
 
     def fetch_robots_disallowed_paths(self, result_filename):
         with open(result_filename, "a") as result_file:
+            result_file.write("\n===== Check Robots.txt. =====\n")
             robots_url = self.base_url + "/robots.txt"
             disallowed_paths = []
             try:
@@ -63,6 +66,7 @@ class AccessControlDiagnosticTool:
 
     def check_access_sensitive_url(self, result_filename):
         with open(result_filename, "a") as result_file:
+            result_file.write("\n===== Check for sensitive path accessibility.=====\n")
             result_file.write("[INFO] Checking sensitive URL access.\n")
 
             if not self.base_url:
@@ -97,6 +101,7 @@ class AccessControlDiagnosticTool:
 
     def check_api_access_control(self, result_filename):
         with open(result_filename, "a") as result_file:
+            result_file.write("\n===== Check API access control... =====\n")
             result_file.write("[INFO] Checking API access control.\n")
             if not self.api_path:
                 result_file.write("[INFO] Skipping API access control check (API path not provided).\n")
@@ -119,6 +124,7 @@ class AccessControlDiagnosticTool:
 
     def check_session_expiration(self, result_filename):
         with open(result_filename, "a") as result_file:
+            result_file.write("\n===== Check session exiration... ======\n")
             result_file.write("[INFO] Checking Session expiration.\n")
             if not (self.login_path and self.base_url):
                 result_file.write("[INFO] Skipping session expiration check (Login path or Base URL not provided).\n")
@@ -137,6 +143,7 @@ class AccessControlDiagnosticTool:
 
     def metadata_manipulation_check(self, result_filename):
         with open(result_filename, "a") as result_file:
+            result_file.write("\n===== Check for possible modulation of metadata =====\n")
             result_file.write("[INFO] Checking metadata manipulation.\n")
             if not (self.original_token and self.secret_key):
                 result_file.write("[INFO] Skipping metadata manipulation check (Token or Secret Key not provided).\n")
@@ -149,6 +156,7 @@ class AccessControlDiagnosticTool:
 
     def check_jwt_usage(self, result_filename):
         with open(result_filename, "a") as result_file:
+            result_file.write("\n===== Check whether JWT is used or not. ======\n")
             response = requests.get(self.base_url)
             auth_header = response.headers.get("Authorization")
             if auth_header and "Bearer" in auth_header:
@@ -160,6 +168,7 @@ class AccessControlDiagnosticTool:
 
     def jwt_manipulation_check(self, result_filename, original_token):
         with open(result_filename, "a") as result_file:
+            result_file.write("\n===== Check if JWT modulation is possible. =====\n")
             manipulated_token = jwt.encode({"role": "admin"}, self.secret_key, algorithm="HS256")
             headers = {"Authorization": f"Bearer {manipulated_token}"}
             response = requests.get(self.base_url + self.admin_path, headers=headers, allow_redirects=False)
@@ -170,6 +179,7 @@ class AccessControlDiagnosticTool:
 
     def cookie_manipulation_check(self, result_filename):
         with open(result_filename, "a") as result_file:
+            result_file.write("\n===== Check for possible cookie manipulation. =====\n=")
             if not (self.admin_path and self.login_path):
                 result_file.write("[INFO] Skipping cookie manipulation check (Admin or Login path not provided).\n")
                 return
@@ -185,6 +195,7 @@ class AccessControlDiagnosticTool:
 
     def check_cors_configuration(self, result_filename):
         with open(result_filename, "a") as result_file:
+            result_file.write("\n===== Check CORS configuration. ======\n")
             result_file.write("[INFO] Checking CORS configuration.\n")
             if not (self.api_path and self.cors_origin):
                 result_file.write("[INFO] Skipping CORS configuration check (API path or CORS origin not provided).\n")
@@ -203,6 +214,7 @@ class AccessControlDiagnosticTool:
 
     def check_hidden_fields(self, result_filename):
         with open(result_filename, "a") as result_file:
+            result_file.write("\n===== Check Hidden fields on Web pages. ======\n")
             result_file.write("[INFO] Checking hidden fields.\n")
             if not self.hidden_field_paths:
                 result_file.write("[INFO] Skipping hidden fields check (No pages provided).\n")
@@ -223,6 +235,7 @@ class AccessControlDiagnosticTool:
 
     def check_error_messages(self, result_filename):
         with open(result_filename, "a") as result_file:
+            result_file.write("\n===== Check Error Messages on Web pages ======\n")
             result_file.write("[INFO] Checking Error messages in web pages.\n")
             if not self.error_message_paths:
                 result_file.write("[INFO] Skipping error message check (No pages provided).\n")
@@ -242,8 +255,6 @@ class AccessControlDiagnosticTool:
 
 
 def run_diagnosis(result_filename):
-    with open(result_filename, "a") as result_file:
-        result_file.write("\n=== A-01 OWASP Broken Access Control ===\n")
     
     tool = AccessControlDiagnosticTool()
     try:
