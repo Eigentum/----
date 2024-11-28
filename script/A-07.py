@@ -118,7 +118,7 @@ def get_web_session_timeout(session, result_filename):
                 append_results_to_file(result_filename, f"[SAFE] Session timeout information found: {match.group(1)}")
                 return match.group(1)
             else:
-                append_results_to_file(result_filename, "[INFO] Session timeout information not found in cookies.")
+                append_results_to_file(result_filename, "[CAUTION] Session timeout information not found in cookies. Please manually verify if session expiration is configured.")
         else:
             append_results_to_file(result_filename, f"[ERROR] Failed to  fetch session information. Status code: {response.status_code}")
     except requests.RequestException as e:
@@ -162,15 +162,13 @@ def run_diagnosis(result_filename):
     append_results_to_file(result_filename, "=== A-07 Identification and Authentication Failures Diagnostics ===")
     append_results_to_file(result_filename, "===================================================================")
 
-    session = perform_login
+    session = perform_login()
 
     session_timeout = get_web_session_timeout(session, result_filename)
     if session_timeout:
         append_results_to_file(result_filename, f"[SAFE] Web session timeout is set. Expiry: {session_timeout}")
     else:
         append_results_to_file(result_filename, "[INFO] Unable to determine web session timeout.")
-
-    append_results_to_file(result_filename, "\n=== End of A-07 Diagnostics ===\n")
 
     sys_session_timeout = get_sys_session_timeout(result_filename)
     if sys_session_timeout:
