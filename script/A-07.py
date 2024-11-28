@@ -2,12 +2,16 @@ import json
 import requests
 import os
 import subprocess
+import re
 
 config_path = os.path.join(os.path.dirname(__file__), "../settings/config.json")
 with open(config_path, "r") as f:
     config = json.load(f)
 
 base_url = config.get("base_url", "").strip()
+login_path = config.get("login_path", "").strip()
+username = config.get("usernaeme", "").strip()
+password = config.get("password", "").strip()
 session_timeout_config = config.get("session_timeout", "").strip()
 login_attempt_limit_config = config.get("login_attempt_limit", "").strip()
 password_hash_method_config = config.get("password_hash_method", "").strip()
@@ -15,6 +19,22 @@ password_hash_method_config = config.get("password_hash_method", "").strip()
 def append_results_to_file(result_filename, content):
     with open(result_filename, "a") as result_file:
         result_file.write(content + "\n")
+
+def perform_login():
+    login_url = f"{base_url}{login_path}"
+    login_data = {"username": username, "password": password}
+
+    session = requests.Session()
+    try:
+        response = session.post(login_url, data=login_data)
+        if response.status_code == 200 and "Set-Cookie" in response.headers:
+            return session
+        else:
+            print(f"[ERROR] Login failed. Status code: {response.status_code}")
+            return None
+    except requests.RequestException as e:
+        print(f"[ERROR] Login request failed: {e}")
+        return None
 
 def get_distro():
     try:
@@ -60,7 +80,7 @@ def check_password_policy(result_filename):
         append_results_to_file(result_filename, "[INFO] Password policy configuration not found.")
 
 
-def get_session_timeout(result_filename):
+def get_sys_session_timeout(result_filename):
     append_results_to_file(result_filename, "\n===== Check to manage session expiration settings =====")
     try:
         if os.name == 'nt':  # Windows
@@ -82,6 +102,29 @@ def get_session_timeout(result_filename):
     except Exception as e:
         append_results_to_file(result_filename, f"[ERROR] Unable to determine session timeout: {e}")
     return int(session_timeout_config) if session_timeout_config else None
+
+def get_web_session_timeout(session, result_filename):
+    append_results_to_file(result_filename, "\n===== Checking Web Session Timeout =====")
+    if not session:
+        append_results_to_file(result_filename, "[ERROR] Cannot check session timeout without a valid login session.")
+        return None
+    
+    try:
+        response = session.get(base_url, timeout=5)
+        if response.status_code == 200:
+            session_info = response.headers.get("Set-Cookie", "")
+            match = re.search(r"(?i)expires=(.+?);", session_info)
+            if match:
+                append_results_to_file(result_filename, f"[SAFE] Session timeout information found: {match.group(1)}")
+                return match.group(1)
+            else:
+                append_results_to_file(result_filename, "[INFO] Session timeout information not found in cookies.")
+        else:
+            append_results_to_file(result_filename, f"[ERROR] Failed to  fetch session information. Status code: {response.status_code}")
+    except requests.RequestException as e:
+        append_results_to_file(result_filename, f"[ERROR] Could not rerieve session timeout: {e}")
+    return None
+
 
 
 def get_login_attempt_limit(result_filename):
@@ -119,9 +162,19 @@ def run_diagnosis(result_filename):
     append_results_to_file(result_filename, "=== A-07 Identification and Authentication Failures Diagnostics ===")
     append_results_to_file(result_filename, "===================================================================")
 
-    session_timeout = get_session_timeout(result_filename)
+    session = perform_login
+
+    session_timeout = get_web_session_timeout(session, result_filename)
     if session_timeout:
-        append_results_to_file(result_filename, f"[SAFE] Session timeout is set to {session_timeout} minutes.")
+        append_results_to_file(result_filename, f"[SAFE] Web session timeout is set. Expiry: {session_timeout}")
+    else:
+        append_results_to_file(result_filename, "[INFO] Unable to determine web session timeout.")
+
+    append_results_to_file(result_filename, "\n=== End of A-07 Diagnostics ===\n")
+
+    sys_session_timeout = get_sys_session_timeout(result_filename)
+    if sys_session_timeout:
+        append_results_to_file(result_filename, f"[SAFE] Session timeout is set to {sys_session_timeout} minutes.")
     else:
         append_results_to_file(result_filename, "[INFO] Session timeout configuration missing.")
 
