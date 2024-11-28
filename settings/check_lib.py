@@ -9,7 +9,9 @@ def check_installed_libraries():
 
     missing_libraries = []
     for library in required_libraries:
-        if importlib.util.find_spec(library) is None:
+        try:
+            importlib.import_module(library)
+        except ImportError:
             missing_libraries.append(library)
 
     if missing_libraries:
