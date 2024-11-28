@@ -17,8 +17,8 @@ def check_libraries():
 
 def check_system_environment():
     try:
-        from settings import check_os
-        return check_os.check_system()
+        from settings import check_OS
+        return check_OS.check_system()
     except ImportError:
         return "Error: settings/check_OS.py not found."
 
